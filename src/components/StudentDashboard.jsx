@@ -1,28 +1,23 @@
-import React, { useState, useEffect } from 'react';
+// src/components/StudentDashboard.jsx
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { markCourseComplete } from '../redux/slice';
 import dummyData from '../dummyData';
-import imgSrc from '../assets/img.jpg'; // Adjust the path accordingly
+import imgSrc from '../assets/img.jpg';
 
 const StudentDashboard = () => {
   const { studentId } = useParams();
-
-  // Load completed courses from localStorage on component mount
-  const initialCompletedCourses = JSON.parse(localStorage.getItem('completedCourses')) || [];
-  const [completedCourses, setCompletedCourses] = useState(initialCompletedCourses);
+  const dispatch = useDispatch();
+  const completedCourses = useSelector((state) => state.mySlice.completedCourses);
 
   useEffect(() => {
-    // Save completed courses to localStorage whenever it changes
+    // Save completedCourses to localStorage whenever it changes
     localStorage.setItem('completedCourses', JSON.stringify(completedCourses));
   }, [completedCourses]);
 
   const handleMarkAsCompleted = (courseId) => {
-    setCompletedCourses((prevCompletedCourses) => {
-      if (prevCompletedCourses.includes(courseId)) {
-        return prevCompletedCourses.filter((id) => id !== courseId);
-      } else {
-        return [...prevCompletedCourses, courseId];
-      }
-    });
+    dispatch(markCourseComplete({ studentId, courseId }));
   };
 
   const enrolledCourses = dummyData.filter((course) =>
@@ -34,14 +29,7 @@ const StudentDashboard = () => {
       <h1 className="students-list-heading">Student Dashboard</h1>
       <table className="dashboard-table">
         <thead>
-          <tr>
-            <th>Course Name</th>
-            <th>Instructor</th>
-            <th>Thumbnail</th>
-            <th>Due Date</th>
-            <th>Progress</th>
-            <th>Action</th>
-          </tr>
+          {/* Table header */}
         </thead>
         <tbody>
           {enrolledCourses.map((course) => (
@@ -52,10 +40,10 @@ const StudentDashboard = () => {
                 <img src={imgSrc} alt={`${course.name} Thumbnail`} style={{ maxWidth: '100px' }} />
               </td>
               <td>{course.dueDate}</td>
-              <td>{completedCourses.includes(course.courseId) ? 'Completed' : 'In Progress'}</td>
+              <td>{completedCourses.includes(`${studentId}_${course.courseId}`) ? 'Completed' : 'In Progress'}</td>
               <td>
                 <button onClick={() => handleMarkAsCompleted(course.courseId)}>
-                  Mark as {completedCourses.includes(course.courseId) ? 'Incomplete' : 'Completed'}
+                  Mark as {completedCourses.includes(`${studentId}_${course.courseId}`) ? 'Incomplete' : 'Completed'}
                 </button>
               </td>
             </tr>
